@@ -1,4 +1,5 @@
 import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const Users = () => {
   return (
@@ -28,10 +29,15 @@ const Users = () => {
         paddingHorizontal: 30
       }}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <TouchableOpacity>
+          <TouchableOpacity style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 30
+          }}>
             <View style={{
-              height: 40,
-              width: 40,
+              height: 50,
+              width: 50,
               borderRadius: 100 / 2,
               overflow: 'hidden'
             }}>
@@ -40,7 +46,102 @@ const Users = () => {
                 width: '100%'
               }}  source={require('../assets/person-1.jpg')} />
             </View>
+
+            <Text style={{
+              fontSize: 17,
+              fontWeight: 500
+            }}>Chris leon</Text>
+
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10
+            }}>
+              <Ionicons name="time" size={24} color="black" />
+              <Text style={{
+                fontWeight: 300
+              }}>Joined in</Text>
+              <Text>2021</Text>
+            </View>
           </TouchableOpacity>
+
+          {/* /////////////////// */}
+
+          <TouchableOpacity style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 30
+          }}>
+            <View style={{
+              height: 50,
+              width: 50,
+              borderRadius: 100 / 2,
+              overflow: 'hidden'
+            }}>
+              <Image style={{
+                height: '100%',
+                width: '100%'
+              }}  source={require('../assets/person-2.avif')} />
+            </View>
+
+            <Text style={{
+              fontSize: 17,
+              fontWeight: 500
+            }}>Kim paul</Text>
+
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10
+            }}>
+              <Ionicons name="time" size={24} color="black" />
+              <Text style={{
+                fontWeight: 300
+              }}>Joined in</Text>
+              <Text>2019</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* /////////////////// */}
+
+          <TouchableOpacity style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 30
+          }}>
+            <View style={{
+              height: 50,
+              width: 50,
+              borderRadius: 100 / 2,
+              overflow: 'hidden'
+            }}>
+              <Image style={{
+                height: '100%',
+                width: '100%'
+              }}  source={require('../assets/person-3.webp')} />
+            </View>
+
+            <Text style={{
+              fontSize: 17,
+              fontWeight: 500
+            }}>Elon musk</Text>
+
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10
+            }}>
+              <Ionicons name="time" size={24} color="black" />
+              <Text style={{
+                fontWeight: 300
+              }}>Joined in</Text>
+              <Text>2015</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* /////////////////// */}
         </ScrollView>
       </View>
     </View>

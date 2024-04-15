@@ -27,7 +27,7 @@ const Splash = () => {
   return (
     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <Animated.View style={{opacity: logo}}>
-        <Image style={{height: 300, width: 300}} source={require('../assets/Black-logo.png')} />
+        <Image style={{height: 300, width: 300}} source={require('../assets/achat-logo.png')} />
       </Animated.View>
     </View>
   )
