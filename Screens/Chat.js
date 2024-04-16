@@ -1,7 +1,10 @@
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const Chat = () => {
+
+  const navigation = useNavigation();
 
   return (
     <View style={{
@@ -44,7 +47,7 @@ const Chat = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             marginBottom: 30
-          }}>
+          }} onPress={() => navigation.navigate('Messaging')}>
             <View style={{
               height: 50,
               width: 50,

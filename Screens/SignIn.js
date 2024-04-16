@@ -65,7 +65,7 @@ const SignIn = () => {
             </View>
 
             <TouchableOpacity style={{
-                backgroundColor: '#6A4460',
+                backgroundColor: '#5832ab',
                 padding: 20,
                 marginTop: 30,
                 justifyContent: 'center',
@@ -99,7 +99,7 @@ const SignIn = () => {
         </View>
         
         <TouchableOpacity style={{
-            backgroundColor: '#6A4460',
+            backgroundColor: '#5832ab',
             padding: 20,
             marginTop: 60,
             justifyContent: 'center',
