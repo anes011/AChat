@@ -9,7 +9,7 @@ const MessagesView = () => {
     <View style={{
         padding: 20,
         backgroundColor: 'rgba(0, 0, 0, .1)',
-        height: height / 1.37
+        flex: 1
     }}>
         <ScrollView showsVerticalScrollIndicator={false}>
             {/* Sent messages */}
