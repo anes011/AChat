@@ -1,12 +1,15 @@
 import { View, Text, Image, TouchableOpacity, Dimensions } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import { useRef, useState } from 'react';
+import { useRef, useState, useContext } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
+import data from '../Context';
 
 const ProfilePhoto = () => {
+
+    const { name, email, password, phoneNumber } = useContext(data);
 
     const { width, height } = Dimensions.get('window');
 
@@ -33,6 +36,10 @@ const ProfilePhoto = () => {
         };
 
         pick();
+    };
+
+    const createUser = () => {
+        //Create new user here
     };
 
   return (
@@ -103,7 +110,7 @@ const ProfilePhoto = () => {
                             alignItems: 'center',
                             flexDirection: 'row',
                             gap: 30
-                        }}>
+                        }} onPress={createUser}>
                             <Text style={{
                                 color: '#fff'
                             }}>Nice! enjoy chat.</Text>

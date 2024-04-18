@@ -1,14 +1,31 @@
-import { View, Text, Image, TextInput, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TextInput, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
+import data from '../Context';
+import { useContext } from 'react';
 
 const SignUp = () => {
+
+    const { name, setName, email, setEmail, password, setPassword,
+    phoneNumber, setPhoneNumber } = useContext(data);
 
   const navigation = useNavigation();
 
   const { width, height } = Dimensions.get('window');
+
+  const checkCredentials = () => {
+    if (name === '') {
+        Alert.alert('What\'s your name?');
+    } else if (email === '') {
+        Alert.alert('Please provide an email!');
+    } else if (password === '') {
+        Alert.alert('Please provide a password!');
+    } else {
+        navigation.navigate('ProfilePhoto');
+    };
+  };
 
   return (
     <View style={{
@@ -43,7 +60,7 @@ const SignUp = () => {
                   height: '100%',
                   width: '90%',
                   paddingLeft: 30
-              }} placeholder='Name...' />
+              }} placeholder='Name...' onChangeText={(text) => setName(text)} value={name} />
               
               <AntDesign name="user" size={24} color="black" />
           </View>
@@ -61,7 +78,7 @@ const SignUp = () => {
                   height: '100%',
                   width: '90%',
                   paddingLeft: 30
-              }} placeholder='Email...' />
+              }} placeholder='Email...' onChangeText={(text) => setEmail(text)} value={email} />
               
               <MaterialIcons name="alternate-email" size={24} color="black" />
           </View>
@@ -79,7 +96,7 @@ const SignUp = () => {
                   height: '100%',
                   width: '90%',
                   paddingLeft: 30
-              }} placeholder='Password...' secureTextEntry={true} />
+              }} placeholder='Password...' secureTextEntry={true} onChangeText={(text) => setPassword(text)} value={password} />
 
               <MaterialIcons name="password" size={24} color="black" />
           </View>
@@ -97,7 +114,7 @@ const SignUp = () => {
                   height: '100%',
                   width: '90%',
                   paddingLeft: 30
-              }} placeholder='Phone...' />
+              }} placeholder='Phone...' onChangeText={(text) => setPhoneNumber(text)} value={phoneNumber} />
               
               <Feather name="phone" size={24} color="black" />
           </View>
@@ -109,7 +126,7 @@ const SignUp = () => {
               justifyContent: 'center',
               alignItems: 'center',
               borderRadius: 20
-          }} onPress={() => navigation.navigate('ProfilePhoto')}>
+          }} onPress={checkCredentials}>
               <Text style={{
                   color: '#fff'
               }}>Sign Up</Text>
