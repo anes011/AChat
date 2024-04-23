@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useRef, useState, useContext } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,8 +6,12 @@ import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import data from '../Context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfilePhoto = () => {
+
+    const navigation = useNavigation();
 
     const { name, email, password, phoneNumber } = useContext(data);
 
@@ -16,6 +20,8 @@ const ProfilePhoto = () => {
     const bottomSheetRef = useRef(null);
 
     const [photo, setPhoto] = useState('');
+
+    const [loading, setLoading] = useState(false);
 
     const pickPhoto = () => {
         const pick = async () => {
@@ -28,7 +34,7 @@ const ProfilePhoto = () => {
                 });
 
                 if (!result.canceled) {
-                    setPhoto(result.assets[0].uri);
+                    setPhoto(result.assets[0]);
                 };
             } catch (err) {
                 console.error(err);
@@ -39,7 +45,53 @@ const ProfilePhoto = () => {
     };
 
     const createUser = () => {
-        //Create new user here
+        setLoading(true);
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('phone_number', phoneNumber);
+
+        const file = {
+            uri: photo.uri,
+            type: photo.mimeType,
+            name: String(photo.uri)
+        };
+
+        formData.append('photo', file);
+
+        const usersApi = async () => {
+            try {
+                const response = await fetch('http://192.168.1.5:8000/users/addUser', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const saveUser = async () => {
+                        try {
+                            await AsyncStorage.setItem('user', JSON.stringify(data.user.id));
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: 'Home' }]
+                            });
+                            setLoading(false);
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    };
+
+                    saveUser();
+                };
+            } catch (err) {
+                Alert.alert('Oops, somthing went wrong!');
+            }
+        };
+
+        usersApi();
     };
 
   return (
@@ -91,7 +143,7 @@ const ProfilePhoto = () => {
                             <Image style={{
                                 height: '100%',
                                 width: '100%'
-                            }} source={{uri: photo}} />
+                            }} source={{uri: photo.uri}} />
                         ) : (
                             <AntDesign name="cloudupload" size={40} color="#5832ab" />
                         )
@@ -111,9 +163,15 @@ const ProfilePhoto = () => {
                             flexDirection: 'row',
                             gap: 30
                         }} onPress={createUser}>
-                            <Text style={{
-                                color: '#fff'
-                            }}>Nice! enjoy chat.</Text>
+                            {
+                                loading ? (
+                                    <ActivityIndicator size={'large'} color={'#fff'} />
+                                ) : (
+                                    <Text style={{
+                                        color: '#fff'
+                                    }}>Nice! enjoy chat.</Text>
+                                )
+                            }
         
                             <Feather name="arrow-right" size={24} color="#fff" />
                         </TouchableOpacity>
