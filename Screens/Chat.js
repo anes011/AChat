@@ -1,10 +1,40 @@
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 
 const Chat = () => {
 
   const navigation = useNavigation();
+
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const getUserName = async () => {
+      try {
+        const response = await AsyncStorage.getItem('user');
+        const userId = JSON.parse(response);
+
+        const getUserById = async () => {
+          try {
+            const response = await fetch(`http://192.168.1.5:8000/users/userById/${userId}`);
+            const data = await response.json();
+
+            setUserName(data.user.name);
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        getUserById();
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    getUserName();
+  }, []);
 
   return (
     <View style={{
@@ -17,7 +47,7 @@ const Chat = () => {
         justifyContent: 'space-between', 
         alignItems: 'center',
       }}>
-        <Text>Welcome back John Doe!</Text>
+        <Text>Welcome back {userName}!</Text>
         
         <TouchableOpacity style={{
           backgroundColor: 'lightgrey',

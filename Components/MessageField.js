@@ -9,7 +9,7 @@ import EmojiPicker, {emojiFromUtf16} from "rn-emoji-picker"
 import {emojis} from "rn-emoji-picker/dist/data"
 import { ScrollView } from 'react-native-gesture-handler';
 
-const MessageField = () => {
+const MessageField = (props) => {
 
     const { width, height } = Dimensions.get('window');
 
@@ -54,6 +54,14 @@ const MessageField = () => {
         };
     }, [messageText]);
 
+    const sendMessage = () => {
+        props.setMessages(prev => [...prev, messageText]);
+        setMessageText('');
+        setTimeout(() => {
+            props.flatListRef.current.scrollToEnd({ animated: true });
+        }, 100);
+    };
+
   return (
     <View style={{
         backgroundColor: '#fff',
@@ -75,7 +83,7 @@ const MessageField = () => {
                         <FontAwesome name="microphone" size={24} color="grey" />
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={sendMessage}>
                         <MaterialCommunityIcons name="send-circle" size={35} color="#5832ab" />
                     </TouchableOpacity>
                 )

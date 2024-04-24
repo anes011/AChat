@@ -24,11 +24,14 @@ export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+
+  const [pressedUser, setPressedUser] = useState('');
   //
 
   return (
     <data.Provider value={{ name, setName, email, setEmail, password,
-    setPassword, phoneNumber, setPhoneNumber }}>
+    setPassword, phoneNumber, setPhoneNumber, pressedUser,
+    setPressedUser }}>
       <GestureHandlerRootView style={{flex: 1}}>
         <StatusBar style="light" />
         <NavigationContainer>

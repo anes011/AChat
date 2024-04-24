@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { View, Text, Image, Dimensions, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Splash = () => {
 
@@ -20,7 +21,26 @@ const Splash = () => {
     }, 2000);
 
     setTimeout(() => {
-      navigation.navigate('Home');
+      const checkUserExists = async () => {
+        try {
+          const response = await AsyncStorage.getItem('user');
+          if (response !== null) {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Home' }]
+            });
+          } else {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'SignIn' }]
+            });
+          };
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      checkUserExists();
     }, 4000);
   }, []);
 

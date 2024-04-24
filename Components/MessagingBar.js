@@ -3,15 +3,33 @@ import { SimpleLineIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import data from '../Context';
 
 const MessagingBar = () => {
+
+    const { pressedUser } = useContext(data);
 
     const navigation = useNavigation();
 
     const { width, height } = Dimensions.get('window');
 
     const [showModal, setShowModal] = useState(false);
+    const [pressedUserData, setPressedUserData] = useState('');
+
+    useEffect(() => {
+        const getPressedUser = async () => {
+            try {
+                const response = await fetch(`http://192.168.1.5:8000/users/userById/${pressedUser}`);
+                const data = await response.json();
+                setPressedUserData(data.user);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        getPressedUser();
+    }, []);
 
   return (
     <View style={{
@@ -40,14 +58,14 @@ const MessagingBar = () => {
                 <Image style={{
                     height: '100%',
                     width: '100%'
-                }} source={require('../assets/person-1.jpg')} />
+                }} source={{uri: pressedUserData.photo}} />
             </View>
 
             <View>
                 <Text style={{
                     fontSize: 20,
                     fontWeight: 500
-                }}>Chris leon</Text>
+                }}>{pressedUserData.name}</Text>
                 <Text style={{
                     color: 'grey',
                     fontWeight: 300

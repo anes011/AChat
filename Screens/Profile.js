@@ -4,16 +4,101 @@ import { Octicons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 
 const Profile = () => {
 
   const navigation = useNavigation();
 
+  const [userInfo, setUserInfo] = useState('');
+  const [photo, setPhoto] = useState('');
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      try {
+        const response = await AsyncStorage.getItem('user');
+        const userId = JSON.parse(response);
+
+        const getUserById = async () => {
+          try {
+            const response = await fetch(`http://192.168.1.5:8000/users/userById/${userId}`);
+            const data = await response.json();
+
+            setUserInfo(data.user);
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        getUserById();
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    getUserInfo();
+  }, []);
+
   const goToSign = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'SignIn' }]
-    });
+    const deleteUser = async () => {
+      try {
+        await AsyncStorage.removeItem('user');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'SignIn' }]
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    deleteUser();
+  };
+
+  const pickPhoto = () => {
+    const pick = async () => {
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+        });
+    
+        if (!result.canceled) {
+          const formData = new FormData();
+          const file = {
+            name: String(result.assets[0].uri),
+            uri: result.assets[0].uri,
+            type: result.assets[0].mimeType
+          };
+          formData.append('photo', file);
+
+          const updateUserPhoto = async () => {
+            try {
+              const response = await fetch(`http://192.168.1.5:8000/users/changePhoto/${userInfo.id}`, {
+                method: 'PUT',
+                body: formData
+              });
+
+              const data = await response.json();
+
+              setUserInfo(data.update);
+            } catch (err) {
+              console.error(err);
+            }
+          };
+
+          updateUserPhoto();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    pick();
   };
 
   return (
@@ -38,7 +123,7 @@ const Profile = () => {
           <Image style={{
             height: '100%',
             width: '100%'
-          }} source={require('../assets/person-1.jpg')} />
+          }} source={{uri: userInfo.photo}} />
         </View>
         <TouchableOpacity style={{
           height: 30,
@@ -50,7 +135,7 @@ const Profile = () => {
           right: 0,
           justifyContent: 'center',
           alignItems: 'center'
-        }}>
+        }} onPress={pickPhoto}>
           <Feather name="edit-2" size={17} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -60,7 +145,7 @@ const Profile = () => {
         fontSize: 20,
         fontWeight: 500,
         marginVertical: 30
-      }}>Chris leon</Text>
+      }}>{userInfo.name}</Text>
       
       <View style={{
         flexDirection: 'row',
@@ -73,7 +158,7 @@ const Profile = () => {
         marginBottom: 30
       }}>
         <MaterialIcons name="alternate-email" size={24} color="black" />
-        <Text>chris011@gmail.com</Text>
+        <Text>{userInfo.email}</Text>
       </View>
 
       <View style={{
@@ -87,7 +172,7 @@ const Profile = () => {
         marginBottom: 30
       }}>
         <Feather name="phone" size={24} color="black" />
-        <Text>+1 457 486 76</Text>
+        <Text>{userInfo.phone_number}</Text>
       </View>
 
       <TouchableOpacity style={{
