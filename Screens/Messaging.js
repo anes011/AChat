@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import MessagingBar from '../Components/MessagingBar';
 import MessagesView from '../Components/MessagesView';
 import MessageField from '../Components/MessageField';
@@ -14,7 +14,7 @@ const Messaging = () => {
         flex: 1
     }}>
         <MessagingBar />
-        <MessagesView messages={messages} flatListRef={flatListRef} />
+        <MessagesView messages={messages} setMessages={setMessages} flatListRef={flatListRef} />
         <MessageField messages={messages} setMessages={setMessages} flatListRef={flatListRef} />
     </View>
   )

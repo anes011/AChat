@@ -43,7 +43,7 @@ const Users = () => {
     };
   }, [userId]);
 
-  const goToChat = (id) => {
+  const goToMessaging = (id) => {
     setPressedUser(id);
     navigation.navigate('Messaging');
   };
@@ -80,7 +80,7 @@ const Users = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: 30
-          }} onPress={() => goToChat(item.id)}>
+          }} onPress={() => goToMessaging(item.id)}>
             <View style={{
               height: 50,
               width: 50,

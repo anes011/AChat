@@ -2,16 +2,22 @@ import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { FlatList } from 'react-native-gesture-handler';
+import moment from 'moment';
+import data from '../Context';
 
 const Chat = () => {
 
+  const { setPressedUser } = useContext(data);
+
   const navigation = useNavigation();
 
-  const [userName, setUserName] = useState('');
+  const [userInfo, setUserInfo] = useState('');
+  const [chats, setChats] = useState([]);
 
   useEffect(() => {
-    const getUserName = async () => {
+    const getUserInfo = async () => {
       try {
         const response = await AsyncStorage.getItem('user');
         const userId = JSON.parse(response);
@@ -21,7 +27,7 @@ const Chat = () => {
             const response = await fetch(`http://192.168.1.5:8000/users/userById/${userId}`);
             const data = await response.json();
 
-            setUserName(data.user.name);
+            setUserInfo(data.user);
           } catch (err) {
             console.error(err);
           }
@@ -33,8 +39,30 @@ const Chat = () => {
       }
     };
 
-    getUserName();
+    getUserInfo();
   }, []);
+
+  useEffect(() => {
+    if (userInfo !== '') {
+      const getUsersInMyChat = async () => {
+        try {
+          const response = await fetch(`http://192.168.1.5:8000/chat/myChat/${userInfo.id}`);
+          const data = await response.json();
+  
+          setChats(data.chats);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+  
+      getUsersInMyChat();
+    };
+  });
+
+  const goToMessaging = (chat_receiver_id) => {
+    setPressedUser(chat_receiver_id);
+    navigation.navigate('Messaging');
+  };
 
   return (
     <View style={{
@@ -47,7 +75,7 @@ const Chat = () => {
         justifyContent: 'space-between', 
         alignItems: 'center',
       }}>
-        <Text>Welcome back {userName}!</Text>
+        <Text>Welcome back {userInfo.name}!</Text>
         
         <TouchableOpacity style={{
           backgroundColor: 'lightgrey',
@@ -71,13 +99,13 @@ const Chat = () => {
         flex: 1,
         marginTop: 30
       }}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <FlatList data={chats} keyExtractor={item => item.id} renderItem={({item}) => (
           <TouchableOpacity style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             marginBottom: 30
-          }} onPress={() => navigation.navigate('Messaging')}>
+          }} onPress={() => goToMessaging(item.chat_receiver_id)}>
             <View style={{
               height: 50,
               width: 50,
@@ -87,7 +115,7 @@ const Chat = () => {
               <Image style={{
                 height: '100%',
                 width: '100%'
-              }} source={require('../assets/person-1.jpg')} />
+              }} source={{uri: item.chat_receiver_photo}} />
             </View>
 
             <View style={{
@@ -96,10 +124,10 @@ const Chat = () => {
               <Text style={{
                 fontWeight: 700,
                 fontSize: 17
-              }}>Chris leon</Text>
+              }}>{item.chat_receiver_name}</Text>
               <Text style={{
                 fontWeight: 500
-              }}>Hi, are you pulling up today...</Text>
+              }}>{item.last_message}</Text>
             </View>
 
             <View style={{
@@ -108,7 +136,7 @@ const Chat = () => {
             }}>
               <Text style={{
                 fontWeight: 500
-              }}>02:11</Text>
+              }}>{moment(item.last_message_time).format('HH:mm')}</Text>
               <View style={{
                 backgroundColor: 'purple',
                 height: 25,
@@ -124,606 +152,7 @@ const Chat = () => {
               </View>
             </View>
           </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-2.avif')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Kim paul</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>yes i got you, but first let's...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>04:21</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-3.webp')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Elon Musk</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>Sounds great, put it on X...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>01:07</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-1.jpg')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Chris leon</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>Hi, are you pulling up today...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>02:11</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>3</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-2.avif')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Kim paul</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>yes i got you, but first let's...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>04:21</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-3.webp')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Elon Musk</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>Sounds great, put it on X...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>01:07</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-1.jpg')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Chris leon</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>Hi, are you pulling up today...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>02:11</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>3</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-2.avif')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Kim paul</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>yes i got you, but first let's...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>04:21</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-3.webp')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Elon Musk</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>Sounds great, put it on X...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>01:07</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-1.jpg')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Chris leon</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>Hi, are you pulling up today...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>02:11</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>3</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-2.avif')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Kim paul</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>yes i got you, but first let's...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>04:21</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* ////////////////////// */}
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 30
-          }}>
-            <View style={{
-              height: 50,
-              width: 50,
-              borderRadius: 100 / 2,
-              overflow: 'hidden'
-            }}>
-              <Image style={{
-                height: '100%',
-                width: '100%'
-              }} source={require('../assets/person-3.webp')} />
-            </View>
-
-            <View style={{
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 700,
-                fontSize: 17
-              }}>Elon Musk</Text>
-              <Text style={{
-                fontWeight: 500
-              }}>Sounds great, put it on X...</Text>
-            </View>
-
-            <View style={{
-              alignItems: 'center',
-              gap: 7
-            }}>
-              <Text style={{
-                fontWeight: 500
-              }}>01:07</Text>
-              <View style={{
-                backgroundColor: 'purple',
-                height: 25,
-                width: 25,
-                borderRadius: 100 / 2,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text style={{
-                  fontWeight: 700,
-                  color: '#fff'
-                }}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </ScrollView>
+        )} />
       </View>
     </View>
   )
