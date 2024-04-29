@@ -12,8 +12,6 @@ import data from '../Context';
 
 const MessageField = (props) => {
 
-    const { pressedUser } = useContext(data);
-
     const { width, height } = Dimensions.get('window');
 
     const [showSend, setShowSend] = useState(false);
@@ -22,7 +20,6 @@ const MessageField = (props) => {
     const [messageText, setMessageText] = useState('');
 
     const [userInfo, setUserInfo] = useState('');
-    const [pressedUserInfo, setPressedUserInfo] = useState('');
 
     useEffect(() => {
         const userId = async () => {
@@ -50,21 +47,6 @@ const MessageField = (props) => {
         userId();
     }, []);
 
-    useEffect(() => {
-        const getUserById = async () => {
-            try {
-                const response = await fetch(`http://192.168.1.5:8000/users/userById/${pressedUser}`);
-                const data = await response.json();
-
-                setPressedUserInfo(data.user);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        getUserById();
-    }, []);
-
     const handleSelectedEmoji = (emojiObj) => {
         const { emoji } = emojiObj;
         setMessageText(messageText + emoji);
@@ -82,7 +64,6 @@ const MessageField = (props) => {
         //Render message on the screen offline
         props.setMessages(prev => [...prev, {
             sender_id: userInfo.id,
-            receiver_id: pressedUser,
             content: messageText,
             timestamp: Date.now(),
             status: 'sending'
@@ -91,211 +72,6 @@ const MessageField = (props) => {
         setTimeout(() => {
             props.flatListRef.current.scrollToEnd({ animated: true });
         }, 100);
-        //
-        
-
-        //Send the message using the Api
-        const sendMessageApi = async () => {
-            try {
-                const response = await fetch(`http://192.168.1.5:8000/message/sendMessage/${userInfo.id}/${pressedUser}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        content: messageText
-                    })
-                });
-
-                const data = await response.json();
-                const message = data.message;
-
-                //Check if chat exists
-                const checkChatApi = async () => {
-                    try {
-                        const response = await fetch(`http://192.168.1.5:8000/chat/checkUserExists/${userInfo.id}/${pressedUser}`);
-                        const data = await response.json();
-
-                        if (data.not_found) {
-                            //If receiver does not exist in my chat, 
-                            //we add eachother
-                            const createChatApi = async () => {
-                                try {
-                                    const response = await fetch(`http://192.168.1.5:8000/chat/createChat/${userInfo.id}/${pressedUser}`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                            last_message: message.content,
-                                            last_message_time: message.timestamp,
-                                            user_name: userInfo.name,
-                                            user_photo: userInfo.photo,
-                                            chat_receiver_name: pressedUserInfo.name,
-                                            chat_receiver_photo: pressedUserInfo.photo
-                                        })
-                                    });
-
-                                    const data = await response.json();
-                                } catch (err) {
-                                    console.error(err);
-                                }
-                            };
-
-                            createChatApi();
-                            //
-
-                            //Add my self to the receiver's chat
-                            const addMySelfToReceiverChat = async () => {
-                                try {
-                                    const response = await fetch(`http://192.168.1.5:8000/chat/createChat/${pressedUser}/${userInfo.id}`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                            last_message: message.content,
-                                            last_message_time: message.timestamp,
-                                            user_name: pressedUserInfo.name,
-                                            user_photo: pressedUserInfo.photo,
-                                            chat_receiver_name: userInfo.name,
-                                            chat_receiver_photo: userInfo.photo
-                                        })
-                                    });
-
-                                    const data = await response.json();
-                                } catch (err) {
-                                    console.error(err);
-                                }
-                            };
-
-                            addMySelfToReceiverChat();
-                            //
-                        } else {
-                            //User exists in my chat, so we get both chats and
-                            //update both chats with the last message
-                            const getUserInMyChat = async () => {
-                                try {
-                                    const response = await fetch(`http://192.168.1.5:8000/chat/checkUserExists/${userInfo.id}/${pressedUser}`);
-                                    const data = await response.json();
-                                    const chat = data.chat;
-
-                                    //We update chat last message and time
-                                    const updateLastMessage = async () => {
-                                        try {
-                                            const response = await fetch(`http://192.168.1.5:8000/chat/updateLastMessage/${chat.id}`, {
-                                                method: 'PUT',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({
-                                                    last_message: message.content
-                                                })
-                                            });
-
-                                            const data = await response.json();
-                                        } catch (err) {
-                                            console.error(err);
-                                        }
-                                    };
-
-                                    updateLastMessage();
-
-                                    const updateLastMessageTime = async () => {
-                                        try {
-                                            const response = await fetch(`http://192.168.1.5:8000/chat/updateLastMessageTime/${chat.id}`, {
-                                                method: 'PUT',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({
-                                                    last_message_time: message.timestamp
-                                                })
-                                            });
-
-                                            const data = await response.json();
-                                        } catch (err) {
-                                            console.error(err);
-                                        }
-                                    };
-
-                                    updateLastMessageTime();
-                                    //
-                                } catch (err) {
-                                    console.error(err);
-                                }
-                            };
-
-                            getUserInMyChat();
-
-                            const getMySelfInHisChat = async () => {
-                                try {
-                                    const response = await fetch(`http://192.168.1.5:8000/chat/checkUserExists/${pressedUser}/${userInfo.id}`);
-                                    const data = await response.json();
-                                    const chat = data.chat;
-
-                                    //We update chat last message and time
-                                    const updateLastMessage = async () => {
-                                        try {
-                                            const response = await fetch(`http://192.168.1.5:8000/chat/updateLastMessage/${chat.id}`, {
-                                                method: 'PUT',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({
-                                                    last_message: message.content
-                                                })
-                                            });
-
-                                            const data = await response.json();
-                                        } catch (err) {
-                                            console.error(err);
-                                        }
-                                    };
-
-                                    updateLastMessage();
-
-                                    const updateLastMessageTime = async () => {
-                                        try {
-                                            const response = await fetch(`http://192.168.1.5:8000/chat/updateLastMessageTime/${chat.id}`, {
-                                                method: 'PUT',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({
-                                                    last_message_time: message.timestamp
-                                                })
-                                            });
-
-                                            const data = await response.json();
-                                        } catch (err) {
-                                            console.error(err);
-                                        }
-                                    };
-
-                                    updateLastMessageTime();
-                                    //
-                                } catch (err) {
-                                    console.error(err);
-                                }
-                            };
-
-                            getMySelfInHisChat();
-                            //
-                        };
-                    } catch (err) {
-                        console.error(err);
-                    }
-                };
-
-                checkChatApi();
-                //
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        sendMessageApi();
         //
     };
 

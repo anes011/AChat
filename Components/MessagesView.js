@@ -1,15 +1,11 @@
-import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Dimensions, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FlatList } from 'react-native-gesture-handler';
 import moment from 'moment';
 import { useEffect, useState, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import data from '../Context';
-import 'moment-timezone';
 
 const MessagesView = (props) => {
-
-    const { pressedUser } = useContext(data);
 
     const { width, height } = Dimensions.get('window');
 
@@ -27,59 +23,6 @@ const MessagesView = (props) => {
     
         getUserInfo();
     }, []);
-    
-    useEffect(() => {
-        if (userId !== '' && pressedUser !== '') {
-            const getMessages = async () => {
-                try {
-                    const response = await fetch(`http://192.168.1.5:8000/message/myMessages/${userId}/${pressedUser}`);
-                    const data = await response.json();
-                    
-                    props.setMessages(data.messages);
-                } catch (err) {
-                    console.error(err);
-                }
-            };
-        
-            getMessages();
-        };
-    }, [userId, pressedUser]);
-
-    useEffect(() => {
-        if (userId !== '' && pressedUser !== '') {
-            const updateLastMessageToSeen = async () => {
-                try {
-                    const response = await fetch(`http://192.168.1.5:8000/message/lastMessage/${userId}/${pressedUser}`);
-                    const data = await response.json();
-                    const message = data.message;
-
-                    const update = async () => {
-                        try {
-                            const response = await fetch(`http://192.168.1.5:8000/message/updateSeen/${message.id}`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    seen: true
-                                })
-                            });
-
-                            const data = await response.json();
-                        } catch (err) {
-                            console.error(err);
-                        }
-                    };
-
-                    update();
-                } catch (err) {
-                    console.error(err);
-                }
-            };
-    
-            updateLastMessageToSeen();
-        };
-    }, [userId, pressedUser]);
 
     const getItemLayout = (data, index) => ({
         length: 200, // Height for each message item (adjust as needed)
@@ -129,7 +72,7 @@ const MessagesView = (props) => {
                             }}>
                                 <Text style={{
                                     fontWeight: 300
-                                }}>{moment(item.timestamp).tz('Africa/Algiers').format('HH:mm')}</Text>
+                                }}>{moment(item.timestamp).format('HH:mm')}</Text>
             
                                 {
                                     item.seen && (

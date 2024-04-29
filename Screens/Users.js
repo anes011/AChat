@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,8 +8,6 @@ import { useNavigation } from '@react-navigation/native';
 const Users = () => {
 
   const navigation = useNavigation();
-
-  const { setPressedUser } = useContext(data);
 
   const [userId, setUserId] = useState('');
   const [users, setUsers] = useState([]);
@@ -43,11 +41,6 @@ const Users = () => {
     };
   }, [userId]);
 
-  const goToMessaging = (id) => {
-    setPressedUser(id);
-    navigation.navigate('Messaging');
-  };
-
   return (
     <View style={{
       flex: 1
@@ -75,7 +68,7 @@ const Users = () => {
         paddingHorizontal: 30
       }}>
         <FlatList showsVerticalScrollIndicator={false} data={users} keyExtractor={item => item.id} renderItem={({item}) => (
-          <TouchableOpacity style={{
+          <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -109,7 +102,7 @@ const Users = () => {
               }}>Joined in</Text>
               <Text>{item.timestamp.substring(0, 4)}</Text>
             </View>
-          </TouchableOpacity>
+          </View>
         )} />
       </View>
     </View>

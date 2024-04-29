@@ -1,20 +1,29 @@
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, FlatList, ScrollView, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState, useContext } from 'react';
-import { FlatList } from 'react-native-gesture-handler';
 import moment from 'moment';
 import data from '../Context';
+import { AntDesign } from '@expo/vector-icons';
+import { Overlay } from '@rneui/themed';
+import { TextInput } from 'react-native-gesture-handler';
+import { Feather } from '@expo/vector-icons';
 
 const Chat = () => {
 
-  const { setPressedUser } = useContext(data);
+  const { setPressedChat } = useContext(data);
+
+  const { width, height } = Dimensions.get('window');
 
   const navigation = useNavigation();
 
   const [userInfo, setUserInfo] = useState('');
-  const [chats, setChats] = useState([]);
+  const [showAddButtons, setShowAddButtons] = useState(false);
+  const [addUserBtn, setAddUserBtn] = useState(false);
+  const [users, setUsers] = useState([]);
+
+  const addButtons = new Animated.Value(0);
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -44,24 +53,72 @@ const Chat = () => {
 
   useEffect(() => {
     if (userInfo !== '') {
-      const getUsersInMyChat = async () => {
+      const getUsers = async () => {
         try {
-          const response = await fetch(`http://192.168.1.5:8000/chat/myChat/${userInfo.id}`);
+          const response = await fetch(`http://192.168.1.5:8000/users/allUsersButMe/${userInfo.id}`);
           const data = await response.json();
   
-          setChats(data.chats);
+          setUsers(data.users);
         } catch (err) {
           console.error(err);
         }
       };
   
-      getUsersInMyChat();
+      getUsers();
     };
-  });
+  }, []);
 
-  const goToMessaging = (chat_receiver_id) => {
-    setPressedUser(chat_receiver_id);
-    navigation.navigate('Messaging');
+  useEffect(() => {
+    if (addButtons) {
+      Animated.spring(addButtons, {
+        toValue: -100,
+        duration: 1000,
+        useNativeDriver: true
+      }).start();
+    };
+  }, [addButtons]);
+
+  const createChat = (id) => {
+    const getUserInfo = async () => {
+      try {
+        const response = await fetch(`http://192.168.1.5:8000/users/userById/${id}`);
+        const data = await response.json();
+        const receiver = data.user;
+
+        //Create a chat
+        const chatApi = async () => {
+          try {
+            const response = await fetch(`http://192.168.1.5:8000/chat/createChat/${userInfo.id}/${receiver.id}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                user_name: userInfo.name,
+                user_photo: userInfo.photo,
+                chat_receiver_name: receiver.name,
+                chat_receiver_photo: receiver.photo
+              })
+            });
+
+            const data = await response.json();
+
+            console.log(data);
+
+            //Chat created!
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        chatApi();
+        //
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    getUserInfo();
   };
 
   return (
@@ -99,13 +156,13 @@ const Chat = () => {
         flex: 1,
         marginTop: 30
       }}>
-        <FlatList data={chats} keyExtractor={item => item.id} renderItem={({item}) => (
+        <ScrollView showsVerticalScrollIndicator={false}>
           <TouchableOpacity style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             marginBottom: 30
-          }} onPress={() => goToMessaging(item.chat_receiver_id)}>
+          }} onPress={() => navigation.navigate('Messaging')}>
             <View style={{
               height: 50,
               width: 50,
@@ -115,7 +172,7 @@ const Chat = () => {
               <Image style={{
                 height: '100%',
                 width: '100%'
-              }} source={{uri: item.chat_receiver_photo}} />
+              }} source={require('../assets/person-1.jpg')} />
             </View>
 
             <View style={{
@@ -124,10 +181,10 @@ const Chat = () => {
               <Text style={{
                 fontWeight: 700,
                 fontSize: 17
-              }}>{item.chat_receiver_name}</Text>
+              }}>Chris leon</Text>
               <Text style={{
                 fontWeight: 500
-              }}>{item.last_message}</Text>
+              }}>Hi, what's your plans...</Text>
             </View>
 
             <View style={{
@@ -136,7 +193,7 @@ const Chat = () => {
             }}>
               <Text style={{
                 fontWeight: 500
-              }}>{moment(item.last_message_time).format('HH:mm')}</Text>
+              }}>03:11</Text>
               <View style={{
                 backgroundColor: 'purple',
                 height: 25,
@@ -152,8 +209,125 @@ const Chat = () => {
               </View>
             </View>
           </TouchableOpacity>
-        )} />
+        </ScrollView>
       </View>
+
+      <TouchableOpacity style={{
+        height: 70,
+        width: 70,
+        backgroundColor: 'purple',
+        alignSelf: 'flex-end',
+        borderRadius: 100 / 2,
+        marginBottom: 40,
+        justifyContent: 'center',
+        alignItems: 'center'
+      }} onPress={() => setShowAddButtons(!showAddButtons)}>
+        {
+          showAddButtons ? (
+            <View style={{
+              transform: [{rotate: '45deg'}]
+            }}>
+              <AntDesign name="plus" size={28} color="#fff" />
+            </View>
+          ) : (
+            <View style={{
+              transform: [{rotate: '0deg'}]
+            }}>
+              <AntDesign name="plus" size={28} color="#fff" />
+            </View>
+          )
+        }
+      </TouchableOpacity>
+
+      {
+        showAddButtons && (
+          <Animated.View style={{
+            position: 'absolute',
+            right: 30,
+            bottom: 40,
+            gap: 30,
+            transform: [{translateY: addButtons}]
+          }}>
+            <TouchableOpacity style={{
+              height: 70,
+              width: 70,
+              backgroundColor: 'purple',
+              borderRadius: 100 / 2,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <AntDesign name="addusergroup" size={24} color="#fff" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{
+              height: 70,
+              width: 70,
+              backgroundColor: 'purple',
+              borderRadius: 100 / 2,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }} onPress={() => setAddUserBtn(true)}>
+              <AntDesign name="adduser" size={24} color="#fff" />
+            </TouchableOpacity>
+          </Animated.View>
+        )
+      }
+
+      <Overlay isVisible={addUserBtn ? true : false} onBackdropPress={() => setAddUserBtn(false)} overlayStyle={{
+        width: width - 60
+      }}>
+        <View style={{
+          flexDirection: 'row',
+          borderWidth: 2,
+          borderColor: 'purple',
+          borderRadius: 30,
+          overflow: 'hidden'
+        }}>
+          <TextInput style={{
+            flex: 1,
+            paddingLeft: 20
+          }} placeholder='Search for someone...' />
+
+          <TouchableOpacity style={{
+            padding: 15,
+            paddingHorizontal: 20,
+            backgroundColor: 'purple'
+          }}>
+            <Feather name="search" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={{
+          marginTop: 20
+        }}>
+          <FlatList data={users} keyExtractor={item => item.id} renderItem={({item}) => (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 20
+            }}>
+              <View style={{
+                height: 50,
+                width: 50,
+                borderRadius: 100 / 2,
+                overflow: 'hidden'
+              }}>
+                <Image source={{uri: item.photo}} style={{
+                  height: '100%',
+                  width: '100%'
+                }} />
+              </View>
+
+              <Text>{item.name}</Text>
+
+              <TouchableOpacity onPress={() => createChat(item.id)}>
+                <AntDesign name="plus" size={30} color="purple" />
+              </TouchableOpacity>
+            </View>
+          )} />
+        </View>
+      </Overlay>
     </View>
   )
 };
