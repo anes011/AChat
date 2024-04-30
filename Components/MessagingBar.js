@@ -5,14 +5,31 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useState, useContext, useEffect } from 'react';
 import data from '../Context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MessagingBar = () => {
+
+    const { pressedChat } = useContext(data);
 
     const navigation = useNavigation();
 
     const { width, height } = Dimensions.get('window');
 
     const [showModal, setShowModal] = useState(false);
+    const [userId, setUserId] = useState('');
+    
+    useEffect(() => {
+        const getUserId = async () => {
+            try {
+                const response = await AsyncStorage.getItem('user');
+                setUserId(JSON.parse(response));
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        getUserId();
+    }, []);
 
   return (
     <View style={{
@@ -25,36 +42,71 @@ const MessagingBar = () => {
         paddingVertical: 20,
         paddingTop: 50
     }}>
-        <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 20
-        }} onPress={() => navigation.goBack()}>
-            <SimpleLineIcons name="arrow-left" size={24} color="black" />
-
-            <View style={{
-                height: 50,
-                width: 50,
-                borderRadius: 100 / 2,
-                overflow: 'hidden'
-            }}>
-                <Image style={{
-                    height: '100%',
-                    width: '100%'
-                }} source={require('../assets/person-1.jpg')} />
-            </View>
-
-            <View>
-                <Text style={{
-                    fontSize: 20,
-                    fontWeight: 500
-                }}>Chris leon</Text>
-                <Text style={{
-                    color: 'grey',
-                    fontWeight: 300
-                }}>Online</Text>
-            </View>
-        </TouchableOpacity>
+        {
+            pressedChat.creator_id === userId ? (
+                <TouchableOpacity style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 20
+                }} onPress={() => navigation.goBack()}>
+                    <SimpleLineIcons name="arrow-left" size={24} color="black" />
+        
+                    <View style={{
+                        height: 50,
+                        width: 50,
+                        borderRadius: 100 / 2,
+                        overflow: 'hidden'
+                    }}>
+                        <Image style={{
+                            height: '100%',
+                            width: '100%'
+                        }} source={{uri: pressedChat.chat_receiver_photo}} />
+                    </View>
+        
+                    <View>
+                        <Text style={{
+                            fontSize: 20,
+                            fontWeight: 500
+                        }}>{pressedChat.chat_receiver_name}</Text>
+                        <Text style={{
+                            color: 'grey',
+                            fontWeight: 300
+                        }}>Online</Text>
+                    </View>
+                </TouchableOpacity>
+            ) : (
+                <TouchableOpacity style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 20
+                }} onPress={() => navigation.goBack()}>
+                    <SimpleLineIcons name="arrow-left" size={24} color="black" />
+        
+                    <View style={{
+                        height: 50,
+                        width: 50,
+                        borderRadius: 100 / 2,
+                        overflow: 'hidden'
+                    }}>
+                        <Image style={{
+                            height: '100%',
+                            width: '100%'
+                        }} source={{uri: pressedChat.user_photo}} />
+                    </View>
+        
+                    <View>
+                        <Text style={{
+                            fontSize: 20,
+                            fontWeight: 500
+                        }}>{pressedChat.user_name}</Text>
+                        <Text style={{
+                            color: 'grey',
+                            fontWeight: 300
+                        }}>Online</Text>
+                    </View>
+                </TouchableOpacity>
+            )
+        }
 
         <View style={{
             flexDirection: 'row',
